@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЕСОЗ · Спільний борд гіпотез — голосування команди</title>
+<style>
+  :root{
+    --ink:#102A30; --ink-soft:#3C5258; --paper:#EEF1F1; --card:#FFFFFF;
+    --line:#D5DDDD; --line-strong:#B9C4C4;
+    --A:#0E7C7B; --A-bg:#E0EFEE; --B:#BC5A1C; --B-bg:#F9E9DB;
+    --C:#2D4A9E; --C-bg:#E5E9F7; --D:#5C6B76; --D-bg:#E8ECEF;
+    --keep:#1F8A4C; --keep-bg:#E4F3E9; --rm:#C03A2B; --rm-bg:#F8E6E3; --q:#8a6d00; --q-bg:#FBF1D9;
+    --mono:ui-monospace,"SFMono-Regular","Cascadia Mono","Menlo",monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  body{line-height:1.4}
+
+  header{position:sticky;top:0;z-index:30;background:var(--ink);color:#EAF0F0;border-bottom:3px solid var(--A)}
+  .hwrap{max-width:1680px;margin:0 auto;padding:14px 20px 12px}
+  .titlerow{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  h1{font-size:19px;font-weight:700;margin:0;letter-spacing:.2px}
+  .sub{font-size:12.5px;color:#9FB3B3}
+  .tally{font-family:var(--mono);font-size:12px;margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .tally b{font-weight:700}
+  .t-keep{color:#7BD79E}.t-rm{color:#F2A79C}.t-con{color:#F4D58A}.t-und{color:#CBD6D6}
+  .who{font-size:12px;color:#9FB3B3;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .who b{color:#D7E2E2}
+  .who a{color:#7BD79E;cursor:pointer;text-decoration:underline}
+  .banner{background:#7a3a12;color:#ffe;font-size:12.5px;padding:8px 20px;text-align:center}
+
+  .controls{max-width:1680px;margin:0 auto;padding:10px 20px;display:flex;gap:10px 14px;flex-wrap:wrap;align-items:center;
+    background:#F7F9F9;border-bottom:1px solid var(--line);position:sticky;top:var(--htop,0);z-index:20}
+  .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .lab{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin-right:2px}
+  .chip{font:inherit;font-size:12px;border:1px solid var(--line-strong);background:#fff;color:var(--ink);
+    padding:5px 11px;border-radius:999px;cursor:pointer;transition:.12s;white-space:nowrap}
+  .chip:hover{border-color:var(--ink-soft)}
+  .chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip.cA[aria-pressed="true"]{background:var(--A);border-color:var(--A)}
+  .chip.cB[aria-pressed="true"]{background:var(--B);border-color:var(--B)}
+  .chip.cC[aria-pressed="true"]{background:var(--C);border-color:var(--C)}
+  .chip.cD[aria-pressed="true"]{background:var(--D);border-color:var(--D)}
+  .chip.ck[aria-pressed="true"]{background:var(--keep);border-color:var(--keep)}
+  .chip.cr[aria-pressed="true"]{background:var(--rm);border-color:var(--rm)}
+  .chip.cc[aria-pressed="true"]{background:var(--q);border-color:var(--q)}
+  input[type=search],select{font:inherit;font-size:12.5px;padding:6px 10px;border:1px solid var(--line-strong);border-radius:7px;background:#fff;color:var(--ink)}
+  input[type=search]{min-width:200px}
+  .btn{font:inherit;font-size:12px;font-weight:600;border:1px solid var(--ink);background:var(--ink);color:#fff;padding:6px 13px;border-radius:7px;cursor:pointer}
+  .btn.ghost{background:#fff;color:var(--ink)}
+  .btn:hover{opacity:.9}
+
+  .board{max-width:1680px;margin:0 auto;padding:16px 16px 60px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
+  .col{min-width:0}
+  .colhead{position:sticky;top:var(--ctop,150px);z-index:10;border-radius:10px;padding:10px 12px;margin-bottom:10px;color:#fff}
+  .colhead.A{background:var(--A)}.colhead.B{background:var(--B)}.colhead.C{background:var(--C)}.colhead.D{background:var(--D)}
+  .cl{display:flex;align-items:center;gap:9px}
+  .clet{font-family:var(--mono);font-weight:700;font-size:15px;background:rgba(255,255,255,.22);width:24px;height:24px;border-radius:6px;display:grid;place-items:center}
+  .cname{font-weight:700;font-size:13.5px;line-height:1.15}
+  .cdesc{font-size:11px;color:rgba(255,255,255,.86);margin-top:4px}
+  .cmeta{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.92);margin-top:7px;display:flex;gap:12px;flex-wrap:wrap}
+
+  .card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--cc);border-radius:9px;padding:10px 11px 10px;margin-bottom:9px;transition:border-color .14s,box-shadow .14s;position:relative}
+  .card.A{--cc:var(--A)}.card.B{--cc:var(--B)}.card.C{--cc:var(--C)}.card.D{--cc:var(--D)}
+  .card:hover{box-shadow:0 4px 14px rgba(16,42,48,.10)}
+  .card.lead-keep{border-left-color:var(--keep);box-shadow:inset 3px 0 0 var(--keep)}
+  .card.lead-rm{border-left-color:var(--rm);box-shadow:inset 3px 0 0 var(--rm)}
+  .card.lead-contested{border-left-color:var(--q);box-shadow:inset 3px 0 0 var(--q)}
+  .crow{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .cid{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--cc);padding:1px 7px;border-radius:5px}
+  .pos{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.3px;padding:1px 6px;border-radius:5px;border:1px solid var(--line-strong);color:var(--ink-soft);background:#F5F7F7}
+  .pos.p1{color:#8a4b00;background:#FBEFD6;border-color:#EAD2A0}
+  .pos.eu{color:#1d2f6b;background:#E3E8F7;border-color:#C2CBEC}
+  .pos.cut{color:var(--rm);background:var(--rm-bg);border-color:#E7BDB6}
+  .claim{font-size:13px;font-weight:600;color:var(--ink);margin:1px 0 5px}
+  .dir{font-size:11.5px;color:var(--ink-soft);margin:0 0 7px}
+  .dir b{color:var(--cc);font-weight:700}
+  .meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+  .tag{font-size:10px;padding:1px 6px;border-radius:4px;background:#EEF2F2;color:var(--ink-soft);border:1px solid #E1E7E7}
+  .tag.src{background:#fff}.tag.ver{background:#fff;border-color:var(--line-strong);font-weight:600;color:var(--ink)}
+  .ref{font-size:10px;color:var(--ink-soft);font-style:italic}
+  .note{font-size:10.5px;color:#7a5200;background:#FBF1D9;border:1px solid #ecd9a0;border-radius:5px;padding:3px 7px;margin:0 0 7px}
+
+  .votes{display:flex;gap:5px;margin-bottom:6px}
+  .vbtn{flex:1;font:inherit;font-size:11px;font-weight:600;border:1.5px solid var(--line-strong);background:#fff;color:var(--ink-soft);
+    padding:6px 4px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:.1s}
+  .vbtn:hover{border-color:var(--ink-soft)}
+  .vbtn .cnt{font-family:var(--mono);font-size:11px;min-width:14px;text-align:center;background:#EEF2F2;border-radius:4px;padding:0 4px;color:var(--ink)}
+  .vbtn.keep.mine{background:var(--keep);border-color:var(--keep);color:#fff}
+  .vbtn.q.mine{background:var(--q);border-color:var(--q);color:#fff}
+  .vbtn.rm.mine{background:var(--rm);border-color:var(--rm);color:#fff}
+  .vbtn.mine .cnt{background:rgba(255,255,255,.3);color:#fff}
+  .vsum{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);margin-bottom:7px;min-height:13px}
+
+  .ctoggle{font:inherit;font-size:11px;font-weight:600;color:var(--ink-soft);background:none;border:0;cursor:pointer;padding:2px 0}
+  .ctoggle:hover{color:var(--ink)}
+  .ctoggle .ccount{font-family:var(--mono)}
+  .cbox{margin-top:6px;border-top:1px dashed var(--line);padding-top:7px}
+  .clist{display:flex;flex-direction:column;gap:6px;margin-bottom:7px;max-height:220px;overflow:auto}
+  .citem{font-size:11.5px;background:#F5F8F8;border-radius:6px;padding:5px 8px;border:1px solid #E7EDED}
+  .citem .by{font-weight:700;color:var(--ink)}
+  .citem .tm{font-family:var(--mono);font-size:9.5px;color:#8DA0A0;margin-left:6px}
+  .cempty{font-size:11px;color:#9FB0B0;font-style:italic;padding:2px 0}
+  .cinput{display:flex;gap:5px}
+  .cinput input{flex:1;font:inherit;font-size:11.5px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:6px}
+  .cinput button{font:inherit;font-size:11px;font-weight:600;border:1px solid var(--cc);background:var(--cc);color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer}
+
+  .empty{font-size:11.5px;color:var(--ink-soft);text-align:center;padding:14px 6px;border:1px dashed var(--line-strong);border-radius:8px}
+  body.compact .dir,body.compact .meta{display:none}
+  body.compact .card{padding:8px 10px}
+
+  /* name modal */
+  .modal{position:fixed;inset:0;background:rgba(16,42,48,.55);z-index:50;display:grid;place-items:center;padding:20px}
+  .modal[hidden]{display:none}
+  .mcard{background:#fff;border-radius:14px;max-width:380px;width:100%;padding:22px 22px 20px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .mcard h2{margin:0 0 6px;font-size:17px;color:var(--ink)}
+  .mcard p{margin:0 0 14px;font-size:12.5px;color:var(--ink-soft)}
+  .mcard input{width:100%;font:inherit;font-size:14px;padding:9px 11px;border:1.5px solid var(--line-strong);border-radius:8px;margin-bottom:12px}
+  .mcard .btn{width:100%;justify-content:center;font-size:13px;padding:9px}
+
+  footer{max-width:1680px;margin:0 auto;padding:6px 20px 40px;font-size:11px;color:var(--ink-soft)}
+  @media (max-width:1180px){.board{grid-template-columns:repeat(2,1fr)}.colhead{position:static}}
+  @media (max-width:640px){.board{grid-template-columns:1fr}.tally{width:100%;margin-left:0}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="titlerow">
+      <h1>ЕСОЗ — спільний борд гіпотез</h1>
+      <span class="sub">голосування команди · оновлення наживо</span>
+      <div class="tally" id="tally"></div>
+    </div>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+<div class="banner" id="banner" hidden></div>
+
+<div class="controls" id="controls">
+  <div class="grp"><span class="lab">Категорія</span>
+    <button class="chip cat" data-cat="all" aria-pressed="true">Усі</button>
+    <button class="chip cat cA" data-cat="A" aria-pressed="false">A · Лікар</button>
+    <button class="chip cat cB" data-cat="B" aria-pressed="false">B · Пацієнт</button>
+    <button class="chip cat cC" data-cat="C" aria-pressed="false">C · МОЗ/НПА/ЄС</button>
+    <button class="chip cat cD" data-cat="D" aria-pressed="false">D · Можливо зайве</button>
+  </div>
+  <div class="grp"><span class="lab">Голоси</span>
+    <button class="chip vf" data-v="all" aria-pressed="true">Усі</button>
+    <button class="chip vf ck" data-v="keep" aria-pressed="false">Лідирує «лишити»</button>
+    <button class="chip vf cr" data-v="rm" aria-pressed="false">Лідирує «прибрати»</button>
+    <button class="chip vf cc" data-v="contested" aria-pressed="false">Спірні</button>
+    <button class="chip vf" data-v="none" aria-pressed="false">Без голосів</button>
+  </div>
+  <div class="grp"><span class="lab">Перевірити у</span>
+    <select id="fver"><option value="all">усіх</option></select>
+  </div>
+  <div class="grp"><span class="lab">Позиція</span>
+    <select id="fpos">
+      <option value="all">будь-яка</option>
+      <option value="П1">П1 — першочергово</option>
+      <option value="П2">П2 — друга хвиля</option>
+      <option value="ЄС">ЄС — євроінтеграція</option>
+      <option value="cut">Кандидат на зняття</option>
+    </select>
+  </div>
+  <div class="grp" style="margin-left:auto">
+    <input type="search" id="search" placeholder="Пошук у гіпотезах…" aria-label="Пошук">
+    <button class="btn ghost" id="density">Компактно</button>
+    <button class="btn" id="export">Експорт CSV</button>
+  </div>
+</div>
+
+<main class="board" id="board"></main>
+<footer id="foot">
+  Джерела: коментарі HELSI до ДК eHealth-2026 · «Пропозиції» (50+ ідей) · аналітичний звіт v1.1 · публічні дані МОЗ/НСЗУ/ДП «Електронне здоров’я»/ВООЗ/Світовий банк · власний синтез. Позиції (П1/П2/ЄС/Зняти) — попередня оцінка, не висновок: усе підлягає перевірці.
+</footer>
+
+<div class="modal" id="modal" hidden>
+  <div class="mcard">
+    <h2>Долучитися до борду</h2>
+    <p>Введіть імʼя або ініціали — так колеги бачитимуть, хто за що голосує і хто залишив коментар.</p>
+    <input id="nameInput" type="text" placeholder="Напр., О. Коваль" maxlength="40">
+    <button class="btn" id="joinBtn">Долучитися</button>
+  </div>
+</div>
+
+<script src="./config.js"></script>
+<script>
+const CAT={
+ A:{name:"Виклик лікаря",desc:"Що ускладнює щоденну роботу на прийомі та в стаціонарі"},
+ B:{name:"Проблема пацієнта",desc:"Що ламає маршрут і доступ пацієнта (фокус — воєнні групи)"},
+ C:{name:"Виклик МОЗ: НПА + євроінтеграція",desc:"Розриви з нормативкою держави та зобов’язаннями ЄС"},
+ D:{name:"Можливо зайве (гіпотеза «без шкоди, якщо не робити»)",desc:"Плани, відкладення яких, за гіпотезою, нічого не погіршить для лікаря/пацієнта/держави"}
+};
+const D=[
+{id:"A1",c:"A",pos:"П1",h:"Обовʼязкова синхронізація з ЦБД вбудована в рутинні дії лікаря і гальмує прийом.",d:"Відвʼязати обовʼязкову синхронізацію від рутинних процесів: асинхронна відправка з локальної бази МІС + автозбереження чернеток.",s:["ПРОП"],v:["Лікарі","МІС"]},
+{id:"A2",c:"A",pos:"П1",h:"Виправлення дрібної помилки у підписаному еМЗ стає бюрократичним кейсом.",d:"«М’яке» редагування (вікно 24–48 год) + єдиний workflow виправлень із SLA та amnesty технічних помилок.",s:["ПРОП","ЗВІТ"],v:["Лікарі","НПА/юристи"],n:"Перевірити, чи це наша конкурентна перевага."},
+{id:"A3",c:"A",pos:"П1",h:"Лікар реконструює анамнез замість клінічного рішення — історія розпорошена.",d:"Клінічний patient summary: діагнози, ліки, алергії, виписки, ключові обстеження.",s:["ЗВІТ","HELSI"],v:["Лікарі"],r:"пара до B1"},
+{id:"A4",c:"A",pos:"П1",h:"ЕСОЗ зберігає лише частину даних, що створює МІС (робоча оцінка ~30%).",d:"Перевірити частку через аудит; визначити critical clinical dataset + portability.",s:["ЗВІТ"],v:["Аудит даних"],r:"причина B1"},
+{id:"A5",c:"A",pos:"П1",h:"Поля в ЕСОЗ переважно текстові — інтероперабельність вужча, ніж потрібно.",d:"Структуровані, кодовані поля (не лише вільний текст) для обміну й повторного використання даних.",s:["РГ"],v:["Лікарі","МІС","Експерти"],r:"пор. C5"},
+{id:"A6",c:"A",pos:"П1",h:"Лікар робить адмін-дії, які могла б робити медсестра/реєстратор.",d:"Роль «асистент/реєстратор» + делегування драфтів; лікар лише валідує.",s:["ЗВІТ","ПРОП"],v:["Лікарі","НПА/юристи"],n:"Функції медсестри в наказах відрізняються від можливостей у ЕСОЗ — узгодити."},
+{id:"A7",c:"A",pos:"П2",h:"Лікар пише історію «мовою оплати»: клінічний і фінансовий запис не розділені.",d:"Розділити «Медичний щоденник» (вільна форма) і «Фінансовий тікет» (коди НСЗУ).",s:["ПРОП","ЗВІТ"],v:["Лікарі","МІС"]},
+{id:"A8",c:"A",pos:"П2",h:"Актуальний клінічний протокол не прив’язаний до діагнозу.",d:"Кнопка «показати стандарт МОЗ» біля коду МКХ.",s:["ПРОП"],v:["Лікарі"]},
+{id:"A9",c:"A",pos:"П2",h:"Світові клінічні протоколи не актуалізуються й не інтегровані в ЕСОЗ.",d:"Регулярна актуалізація міжнародних протоколів з інтеграцією в ЕСОЗ.",s:["РГ"],v:["Лікарі","Експерти"],r:"поруч із A8"},
+{id:"A10",c:"A",pos:"П1",h:"Лабораторні результати не потрапляють у картку автоматично.",d:"Інтеграція лабораторних результатів.",s:["ПРОП","HELSI"],v:["Лікарі","МІС"]},
+{id:"A11",c:"A",pos:"П2",h:"Знімки КТ/МРТ недоступні в ЕСОЗ — диски та флешки.",d:"Перегляд DICOM через RIS/PACS-посилання в картці.",s:["ПРОП"],v:["Лікарі","МІС"]},
+{id:"A12",c:"A",pos:"П1",h:"Лабораторно-стаціонарний цикл фрагментований (призначення→забір→результат→рішення).",d:"Цифровізувати весь цикл, а не ізольований підпроцес зразка.",s:["ЗВІТ","HELSI"],v:["Лікарі"],r:"проти D1"},
+{id:"A13",c:"A",pos:"П1",h:"Стаціонарний маршрут не ведеться в ЕСОЗ (щоденники, протоколи, консиліум, виписка).",d:"Повна стаціонарна ЕМК (003/о) з reuse у виписку 027/о; враховувати в оплату та виписку навіть після звільнення/смерті лікаря, що вів пацієнта.",s:["HELSI","ЗВІТ"],v:["Лікарі"],r:"проти D9"},
+{id:"A14",c:"A",pos:"П1",h:"У направленні бракує обовʼязкової інформації від лікаря, який направляє.",d:"Зробити обовʼязковими ключові дані направляючого лікаря при створенні направлення.",s:["РГ"],v:["Лікарі"],r:"пор. A16"},
+{id:"A15",c:"A",pos:"П2",h:"Повторне перевикористання направлення з помилковою привʼязкою/взаємодією неможливе.",d:"Дозволити повторно використати/переприв’язати направлення без створення з нуля.",s:["РГ"],v:["Лікарі"],r:"пор. A16"},
+{id:"A16",c:"A",pos:"П1",h:"Немає е-направлення на комісії (ЛКК/ВЛК/МСЕК) у клінічному workflow.",d:"Е-направлення в один клік з автозбором еМЗ за 6 міс.",s:["ПРОП","HELSI"],v:["Лікарі","НПА/юристи"]},
+{id:"A17",c:"A",pos:"П1",h:"Постійні зміни техвимог до МІС сприймаються як хаос.",d:"Річний календар змін, релізні вікна, sandbox, обов’язкова бета на 500 лікарів.",s:["ЗВІТ","ПРОП"],v:["МІС","Лікарі"]},
+{id:"A18",c:"A",pos:"П1",h:"Навантаження лікаря не вимірюється як стратегічний ризик.",d:"KPI навантаження (час/кліки/помилки/NPS) + правило no-add-without-remove + impact note.",s:["ЗВІТ"],v:["Лікарі"]},
+{id:"A19",c:"A",pos:"П1",h:"Активні декларації померлих/виїхалих викривляють панель і навантаження лікаря.",d:"Кероване розірвання/призупинення декларації лікарем/закладом.",s:["ЗВІТ"],v:["Лікарі","НСЗУ/фінанси"],r:"НПА — у C3"},
+{id:"A20",c:"A",pos:"П1",h:"Декларації закріплені за конкретним лікарем, а не за надавачем (НМП/ЄДРПОУ).",d:"Прив’язувати декларації до надавача (НМП/ЄДРПОУ), а не лише до лікаря — стійкість до зміни/звільнення лікаря.",s:["РГ"],v:["Лікарі","НПА/юристи","НСЗУ/фінанси"],r:"пор. A19/A13"},
+{id:"A21",c:"A",pos:"П2",h:"Немає голосового вводу та автокодування — лікар друкує вручну.",d:"Україномовний медичний транскрибатор (voice-to-text) + AI-підказка кодів МКХ/ICPC.",s:["ПРОП"],v:["Лікарі"],r:"перевірити точність/довіру"},
+{id:"B1",c:"B",pos:"П1",h:"Історія втрачається при зміні лікаря/закладу/МІС (ВПО, поранені, евакуйовані).",d:"Patient summary + переносимість (portability) ключових даних.",s:["ЗВІТ","HELSI"],v:["Пацієнти","Лікарі"],r:"пара до A3/A4"},
+{id:"B2",c:"B",pos:"П2",h:"Пацієнт не бачить, які послуги надано й оплачено за ПМГ.",d:"Прозорість ПМГ у кабінеті.",s:["HELSI"],v:["Пацієнти"]},
+{id:"B3",c:"B",pos:"П2",h:"Пацієнт не знає статусу рецепта (погашено/ні) і чи доступні ліки.",d:"Статус погашення + нагадування про продовження.",s:["ЗВІТ"],v:["Пацієнти"]},
+{id:"B4",c:"B",pos:"П1",h:"Поранені/реабілітаційні мають фрагментований довгий маршрут між закладами.",d:"Цифровий маршрут травми/реабілітації + MDT-доступ + реабілітаційний план.",s:["ЗВІТ"],v:["Пацієнти","Лікарі"]},
+{id:"B5",c:"B",pos:"П1",h:"Невідкладні/прифронтові без документів/телефону/BankID не мають доступу до критичних даних.",d:"Emergency access з audit trail + мінімальний критичний запис.",s:["ЗВІТ"],v:["Пацієнти","НПА/юристи"]},
+{id:"B6",c:"B",pos:"П1",h:"Психічне здоров’я (ПТСР, ветерани, сім’ї): стигма, дефіцит, складна маршрутизація.",d:"Скринінг + маршрутизація + follow-up на рівні ПМД.",s:["ЗВІТ"],v:["Пацієнти","Лікарі"]},
+{id:"B7",c:"B",pos:"П2",h:"Пацієнт не довіряє записам (фіктивні візити) і не бачить, хто діяв у картці.",d:"Журнал доступів + підтвердження/оскарження візиту.",s:["ЗВІТ"],v:["Пацієнти"]},
+{id:"B8",c:"B",pos:"П2",h:"Самозапис на послуги (зокрема МРТ/КТ) і дії з направленнями недоступні централізовано.",d:"Самозапис + дії з направленнями в кабінеті.",s:["HELSI"],v:["Пацієнти"]},
+{id:"B9",c:"B",pos:"П2",h:"Імунізаційна історія недоступна пацієнту; пропущені щеплення.",d:"Доступ до щеплень + календар/нагадування.",s:["HELSI"],v:["Пацієнти"]},
+{id:"B10",c:"B",pos:"П2",h:"Лікар не може персоналізовано порадити в застосунок; немає авто-нагадувань про візит.",d:"Коментарі лікаря в кабінет + SMS/push-нагадування.",s:["ПРОП"],v:["Пацієнти"]},
+{id:"B11",c:"B",pos:"П2",h:"Реєстрація іноземців/ВПО і розрахунки ускладнені.",d:"Спрощена реєстрація + portability + облік для ПМГ.",s:["HELSI"],v:["Пацієнти","НПА/юристи"]},
+{id:"C1",c:"C",pos:"П1",h:"Політика «усі в ЕСОЗ» діє, але форми (003/025/027/028/066) лише частково електронні.",d:"Наказ МОЗ, що скасовує паралельний папір і первинну облікову документацію.",s:["ЗВІТ"],v:["НПА/юристи"]},
+{id:"C2",c:"C",pos:"П1",h:"Готовий функціонал заблокований відсутністю НПА (стаціонар/зразок чекають наказу 587).",d:"Ризик: інвестиція зроблена, цінності нема, поки немає наказу.",s:["HELSI"],v:["НПА/юристи"]},
+{id:"C3",c:"C",pos:"П1",h:"Розірвання декларацій і повернення помилкових оплат не мають чіткої підстави.",d:"Правила перехідного періоду + death/duplication checks + safeguards.",s:["ЗВІТ"],v:["НПА/юристи","НСЗУ/фінанси"]},
+{id:"C4",c:"C",pos:"П1",h:"Самообслуговування пацієнта потребує оновлення Порядку Реєстру пацієнтів (наказ 2755).",d:"Постанова КМУ + накази МОЗ під самореєстрацію/самодекларацію/згоди.",s:["HELSI"],v:["НПА/юристи"]},
+{id:"C5",c:"C",pos:"П1",eu:1,h:"Стандарти інтероперабельності (HL7 FHIR, LOINC, SNOMED, ICPC/МКХ) впроваджені частково.",d:"Мандат на ядро стандартів + національний термінологічний сервіс.",s:["ЗВІТ","HELSI"],v:["НПА/юристи","Експерти"],r:"межа з D4"},
+{id:"C6",c:"C",pos:"П2",eu:1,h:"Транскордонна взаємодія (patient summary/е-рецепт з ЄС, MyHealth@EU) — лише пілоти.",d:"Зобов’язання ЄС; пілот зараз, масштаб — після стабілізації внутрішньої інтероперабельності.",s:["HELSI"],v:["НПА/юристи","Експерти"]},
+{id:"C7",c:"C",pos:"П1",eu:1,h:"Доступи/захист даних мають бути GDPR-сумісними; emergency access без audit trail = ризик.",d:"Зрозумілі правила доступу + audit trail + сценарії без BankID/Дії.",s:["ЗВІТ"],v:["НПА/юристи"]},
+{id:"C8",c:"C",pos:"П2",h:"Закон «Про публічні електронні реєстри» вимагає приведення реєстрів ЕСОЗ/суміжних.",d:"Узгодити реєстри (ДІАС, ліцензійні тощо) із реєстровим законодавством.",s:["HELSI"],v:["НПА/юристи"]},
+{id:"C9",c:"C",pos:"П2",eu:1,h:"Євродирективи щодо ліків/виробів (2D-кодування, EUDAMED-логіка, ISBT128) не закриті.",d:"Функціонал + НПА під acquis (відпуск ліків, медвироби, кров).",s:["HELSI"],v:["НПА/юристи"]},
+{id:"C10",c:"C",pos:"П2",h:"Телемедицина не має завершеного регулювання (види, «лікар-лікар», відповідальність, оплата).",d:"Закон/наказ під телемед, щоб зняти правову невизначеність послуг.",s:["HELSI"],v:["НПА/юристи"]},
+{id:"C11",c:"C",pos:"П1",h:"МСЕК/оцінювання функціонування винесене окремо, хоча реформа єМСЕК/ЕКОПФО вимагає інтеграції з ЕСОЗ.",d:"Вбудувати оцінювання в МІС, у держконтур передавати лише структурований результат.",s:["ЗВІТ"],v:["НПА/юристи","Експерти"]},
+{id:"C12",c:"C",pos:"П1",h:"Немає сталої фінмоделі: ≈60 пунктів ДК без джерела фінансування.",d:"Бюджетна лінія на ядро ЕСОЗ + модель сталості/монетизації даних.",s:["HELSI"],v:["НСЗУ/фінанси","НПА/юристи"]},
+{id:"C13",c:"C",pos:"П2",h:"Реімбурсація медвиробів і фармстрахування потребують НПА для запуску.",d:"НПА під обіцяні державні гарантії в ЕСОЗ.",s:["HELSI"],v:["НПА/юристи"]},
+{id:"C14",c:"C",pos:"П2",h:"Стратегія-2030/опер.план 2025-2027 ставлять цілі, але roadmap відірваний від клінічної користі.",d:"Узгодити KPI стратегії з реальним impact для лікаря/пацієнта.",s:["ЗВІТ"],v:["Експерти"]},
+{id:"D1",c:"D",pos:"cut",h:"Ізольований підпроцес «зразок біоматеріалів» як окрема вертикаль.",d:"Гіпотеза: без нього маршрут не гірший; цінність лише в повному лаб-циклі (A12).",s:["ЗВІТ","HELSI"],v:["Лікарі","Експерти"],r:"див. A12"},
+{id:"D2",c:"D",pos:"cut",h:"Повномасштабний Big Data/AI на всю систему зараз (на неякісних даних).",d:"Гіпотеза: відкладення нічого не погіршить; вузькі AI-кейси (A21) — окремо лишити.",s:["ЗВІТ"],v:["Експерти"]},
+{id:"D3",c:"D",pos:"cut",h:"Надмірна кількість центральних управлінських дашбордів без впливу на дію лікаря/пацієнта.",d:"Гіпотеза: відсутність не змінює нічого для трьох сторін.",s:["ЗВІТ"],v:["Експерти","Лікарі"]},
+{id:"D4",c:"D",pos:"cut",h:"Розширення класифікаторів понад потрібне для відповідності/клініки, без smart-UX.",d:"Гіпотеза: повнота довідників без UX не дає віддачі (ядро стандартів — це C5).",s:["ЗВІТ"],v:["Лікарі","Експерти"],r:"межа з C5"},
+{id:"D5",c:"D",pos:"cut",h:"Невоєнні медвисновки (усиновлення, зброя, моряки, навчання, передрейсові).",d:"Гіпотеза: відкладення не погіршує воєнний маршрут. Виняток — ВЛК (лишається).",s:["HELSI","ЗВІТ"],v:["НПА/юристи","Експерти"]},
+{id:"D6",c:"D",pos:"cut",h:"Пацієнтська телемедицина, яку ринок МІС покриває роками.",d:"Гіпотеза: окрема розбудова в ЕСОЗ цінності не додає; дані обладнання (A10/A11) — лишити.",s:["HELSI"],v:["Лікарі","МІС"],r:"пор. A10/A11"},
+{id:"D7",c:"D",pos:"cut",h:"Форма 086/о (довідка для вступників) як окрема цифровізація.",d:"Гіпотеза: відкладення на 1-2 роки не впливає на воєнний маршрут.",s:["ЗВІТ"],v:["Експерти"]},
+{id:"D8",c:"D",pos:"cut",h:"Форма 016/о (зведена відомість захворювань) як окремий ручний процес.",d:"Гіпотеза: не цифровізувати окремо — має формуватися авто з ЕМЗ.",s:["ЗВІТ"],v:["Експерти"]},
+{id:"D9",c:"D",pos:"cut",h:"«Care team» як пріоритет понад щоденні стаціонарні записи.",d:"Гіпотеза HELSI: понизити; щоденна стаціонарна допомога не страждає (на відміну від 003/о — A13).",s:["HELSI"],v:["Лікарі"],r:"див. A13"},
+{id:"D10",c:"D",pos:"cut",h:"«ЕСОЗ як двосторонній канал спілкування з лікарями» — нечітке формулювання.",d:"Гіпотеза: у поточному вигляді вимірюваної цінності не дає; потребує перевизначення або зняття.",s:["HELSI"],v:["Лікарі"]},
+{id:"D11",c:"D",pos:"cut",h:"Не-клінічні реєстри (косметика, харчові добавки, пластик тощо).",d:"Гіпотеза: для лікаря/пацієнта/клінічного маршруту нейтральні — поза скоупом борду; потреба з інших політик.",s:["АНАЛІЗ"],v:["Експерти"]},
+{id:"D12",c:"D",pos:"cut",h:"Гейміфікація/рейтинги МІС, репозиторій знань, тренажери.",d:"Гіпотеза: корисні, але відсутність не погіршує маршрут — не П1.",s:["ПРОП"],v:["Лікарі","Експерти"]}
+];
+const SRC={HELSI:"HELSI",ПРОП:"Пропозиції",ЗВІТ:"Звіт v1.1",ПУБЛ:"Публічні",АНАЛІЗ:"Синтез",РГ:"Робоча група"};
+
+/* ---------- storage layer (shared via backend API, localStorage for current user identity) ---------- */
+const API_BASE = (window.API_BASE || "").replace(/\/$/, "");
+const HAS = !!API_BASE;
+
+async function api(path, options={}){
+  const res = await fetch(API_BASE + path, {
+    headers: {"Content-Type":"application/json", ...(options.headers||{})},
+    ...options
+  });
+  if(!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
+  return res.status === 204 ? null : res.json();
+}
+
+async function sget(k,sh){
+  if(!sh) return localStorage.getItem(k);
+  if(!HAS) return null;
+  try{
+    if(k.startsWith("user:")){
+      const id = encodeURIComponent(k.slice(5));
+      const r = await api(`/api/users/${id}`);
+      return r && r.blob ? JSON.stringify(r.blob) : null;
+    }
+  }catch(e){ console.warn(e); }
+  return null;
+}
+async function sset(k,v,sh){
+  if(!sh){ localStorage.setItem(k,v); return; }
+  if(!HAS) return;
+  try{
+    if(k.startsWith("user:")){
+      const id = encodeURIComponent(k.slice(5));
+      await api(`/api/users/${id}`, {method:"PUT", body:JSON.stringify({blob:JSON.parse(v)})});
+    }
+  }catch(e){ console.warn(e); }
+}
+async function slist(p,sh){
+  if(!sh || !HAS) return [];
+  try{
+    if(p === "user:"){
+      const r = await api(`/api/users`);
+      return (r.users||[]).map(u=>"user:"+u.id);
+    }
+  }catch(e){ console.warn(e); }
+  return [];
+}
+
+let ME=null, MYBLOB={name:"",votes:{},comments:{}}, AGG={}, PARTS=0;
+let fCat="all",fV="all",fVer="all",fPos="all",fQ="";
+const openC=new Set();
+
+const board=document.getElementById('board');
+const verSel=document.getElementById('fver');
+[...new Set(D.flatMap(x=>x.v))].sort().forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;verSel.appendChild(o)});
+
+function posTag(x){ if(x.pos==="cut")return '<span class="pos cut">ЗНЯТИ?</span>';
+  let o=`<span class="pos ${x.pos==="П1"?"p1":""}">${x.pos}</span>`; if(x.eu)o+=' <span class="pos eu">ЄС</span>'; return o; }
+
+function renderSkeleton(){
+  board.innerHTML="";
+  ["A","B","C","D"].forEach(c=>{
+    const col=document.createElement('section');col.className="col";col.dataset.col=c;
+    col.innerHTML=`<div class="colhead ${c}"><div class="cl"><span class="clet">${c}</span><span class="cname">${CAT[c].name}</span></div>
+      <div class="cdesc">${CAT[c].desc}</div><div class="cmeta" id="meta-${c}"></div></div>`;
+    D.filter(x=>x.c===c).forEach(x=>{
+      const src=x.s.map(s=>`<span class="tag src">${SRC[s]||s}</span>`).join("");
+      const ver=x.v.map(v=>`<span class="tag ver">${v}</span>`).join("");
+      const ref=x.r?`<span class="ref">↪ ${x.r}</span>`:"";
+      const el=document.createElement('div');el.className="card "+x.c;el.dataset.id=x.id;
+      el.innerHTML=`<div class="crow"><span class="cid">${x.id}</span>${posTag(x)}</div>
+        <div class="claim">${x.h}</div>
+        <div class="dir"><b>→</b> ${x.d}</div>
+        ${x.n?`<div class="note">⚑ ${x.n}</div>`:""}
+        <div class="meta">${src}${ver} ${ref}</div>
+        <div class="votes">
+          <button class="vbtn keep" data-choice="keep">✓ Лишити <b class="cnt">0</b></button>
+          <button class="vbtn q" data-choice="q">? <b class="cnt">0</b></button>
+          <button class="vbtn rm" data-choice="rm">✗ Прибрати <b class="cnt">0</b></button>
+        </div>
+        <div class="vsum"></div>
+        <div class="cwrap">
+          <button class="ctoggle">💬 <b class="ccount">0</b> коментарів</button>
+          <div class="cbox" hidden>
+            <div class="clist"></div>
+            <div class="cinput"><input type="text" placeholder="Ваш коментар…" maxlength="500"><button class="cadd">Додати</button></div>
+          </div>
+        </div>`;
+      col.appendChild(el);
+    });
+    board.appendChild(col);
+  });
+}
+
+function leaning(o){const k=o.keep.length,q=o.q.length,r=o.rm.length;
+  if(k+q+r===0)return"none";
+  if(k>0&&r>0)return"contested";
+  if(k>=q&&k>=r)return"keep";
+  if(r>=q&&r>=k)return"rm";
+  return"contested";}
+
+function passFilter(x,lean){
+  if(fCat!=="all"&&x.c!==fCat)return false;
+  if(fV!=="all"){ if(fV==="keep"&&lean!=="keep")return false;
+    if(fV==="rm"&&lean!=="rm")return false; if(fV==="contested"&&lean!=="contested")return false;
+    if(fV==="none"&&lean!=="none")return false; }
+  if(fVer!=="all"&&!x.v.includes(fVer))return false;
+  if(fPos!=="all"){ if(fPos==="ЄС"&&!x.eu)return false; if(fPos==="cut"&&x.pos!=="cut")return false;
+    if((fPos==="П1"||fPos==="П2")&&x.pos!==fPos)return false; }
+  if(fQ){const t=(x.id+" "+x.h+" "+x.d).toLowerCase();if(!t.includes(fQ))return false;}
+  return true;
+}
+
+function refresh(){
+  const visCols=(fCat==="all")?["A","B","C","D"]:[fCat];
+  board.style.gridTemplateColumns=`repeat(${Math.min(visCols.length,4)},1fr)`;
+  let tk=0,tr=0,tc=0,tn=0;
+  const perCol={A:0,B:0,C:0,D:0};
+  ["A","B","C","D"].forEach(c=>{
+    document.querySelector(`.col[data-col="${c}"]`).style.display=visCols.includes(c)?"":"none";
+  });
+  D.forEach(x=>{
+    const o=AGG[x.id]||{keep:[],q:[],rm:[],comments:[]};
+    const lean=leaning(o);
+    if(lean==="keep")tk++;else if(lean==="rm")tr++;else if(lean==="contested")tc++;else tn++;
+    const el=board.querySelector(`.card[data-id="${x.id}"]`);
+    if(!el)return;
+    const show=passFilter(x,lean);
+    el.style.display=show?"":"none";
+    if(show&&visCols.includes(x.c))perCol[x.c]++;
+    el.classList.remove("lead-keep","lead-rm","lead-contested");
+    if(lean==="keep")el.classList.add("lead-keep");
+    else if(lean==="rm")el.classList.add("lead-rm");
+    else if(lean==="contested")el.classList.add("lead-contested");
+    const my=MYBLOB.votes[x.id];
+    el.querySelectorAll(".vbtn").forEach(b=>{
+      const ch=b.dataset.choice, arr=o[ch];
+      b.querySelector(".cnt").textContent=arr.length;
+      b.classList.toggle("mine",my===ch);
+      b.title=arr.length?arr.join(", "):"";
+    });
+    el.querySelector(".vsum").textContent=
+      (o.keep.length+o.q.length+o.rm.length)?`✓${o.keep.length}  ?${o.q.length}  ✗${o.rm.length} · ${o.keep.length+o.q.length+o.rm.length} голос.`:"ще немає голосів";
+    el.querySelector(".ccount").textContent=o.comments.length;
+    if(openC.has(x.id)){
+      const list=el.querySelector(".clist");
+      list.innerHTML=o.comments.length?o.comments.map(c=>
+        `<div class="citem"><span class="by">${esc(c.by)}</span><span class="tm">${fmt(c.t)}</span><div>${esc(c.txt)}</div></div>`).join("")
+        :'<div class="cempty">Коментарів ще немає — додайте перший.</div>';
+    }
+  });
+  ["A","B","C","D"].forEach(c=>{
+    const all=D.filter(x=>x.c===c).length;
+    document.getElementById(`meta-${c}`).innerHTML=`<span>${all} гіпотез</span><span>показано ${perCol[c]}</span>`;
+  });
+  document.getElementById('tally').innerHTML=
+    `<span class="t-keep"><b>${tk}</b> лишити</span><span class="t-rm"><b>${tr}</b> прибрати</span><span class="t-con"><b>${tc}</b> спірні</span><span class="t-und"><b>${tn}</b> без голосів</span><span style="color:#7e9596">з ${D.length}</span>`;
+  document.getElementById('who').innerHTML= ME
+    ? `<span>Ви: <b>${esc(ME.name)}</b> · <a id="rename">змінити</a></span><span>Учасників: <b>${PARTS}</b></span><span style="color:#7e9596">${HAS?"спільний режим через API · оновлення кожні 6 c":"локальний режим"}</span>`
+    : `<span>Долучіться, щоб голосувати…</span>`;
+  const rn=document.getElementById('rename'); if(rn) rn.onclick=()=>openModal(ME.name);
+}
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const fmt=t=>{const d=new Date(t);return d.toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})};
+
+/* ---------- data load / aggregate ---------- */
+async function loadAgg(){
+  const keys=await slist("user:",true);
+  const agg={};D.forEach(x=>agg[x.id]={keep:[],q:[],rm:[],comments:[]});
+  let n=0;
+  for(const k of keys){
+    const raw=await sget(k,true);if(!raw)continue;let b;try{b=JSON.parse(raw)}catch(e){continue}
+    n++;const nm=b.name||"—";
+    Object.entries(b.votes||{}).forEach(([cid,vv])=>{ if(agg[cid]&&(vv==="keep"||vv==="q"||vv==="rm")) agg[cid][vv].push(nm); });
+    Object.entries(b.comments||{}).forEach(([cid,arr])=>{ if(agg[cid])(arr||[]).forEach(c=>agg[cid].comments.push({by:nm,t:c.t,txt:c.txt})); });
+  }
+  Object.values(agg).forEach(o=>o.comments.sort((a,b)=>a.t-b.t));
+  AGG=agg;PARTS=n;
+}
+async function saveMyBlob(){ MYBLOB.name=ME.name; await sset("user:"+ME.id,JSON.stringify(MYBLOB),true); }
+
+async function castVote(id,ch){
+  if(!ME){openModal("");return;}
+  if(MYBLOB.votes[id]===ch)delete MYBLOB.votes[id];else MYBLOB.votes[id]=ch;
+  await saveMyBlob(); await loadAgg(); refresh();
+}
+async function addComment(id,txt){
+  if(!ME){openModal("");return;} txt=txt.trim(); if(!txt)return;
+  (MYBLOB.comments[id]=MYBLOB.comments[id]||[]).push({t:Date.now(),txt});
+  await saveMyBlob(); await loadAgg(); refresh();
+}
+
+/* ---------- events ---------- */
+board.addEventListener('click',e=>{
+  const card=e.target.closest('.card'); if(!card)return; const id=card.dataset.id;
+  const vb=e.target.closest('.vbtn'); if(vb){castVote(id,vb.dataset.choice);return;}
+  const tog=e.target.closest('.ctoggle'); if(tog){ const box=card.querySelector('.cbox');
+    const open=box.hasAttribute('hidden'); if(open){box.removeAttribute('hidden');openC.add(id);}else{box.setAttribute('hidden','');openC.delete(id);} refresh(); return;}
+  const add=e.target.closest('.cadd'); if(add){ const inp=card.querySelector('.cinput input'); const v=inp.value; inp.value=""; addComment(id,v); return;}
+});
+board.addEventListener('keydown',e=>{ if(e.key==="Enter"&&e.target.matches('.cinput input')){
+  const card=e.target.closest('.card'); addComment(card.dataset.id,e.target.value); e.target.value=""; }});
+
+document.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{fCat=b.dataset.cat;document.querySelectorAll('.cat').forEach(x=>x.setAttribute('aria-pressed',x===b));refresh()});
+document.querySelectorAll('.vf').forEach(b=>b.onclick=()=>{fV=b.dataset.v;document.querySelectorAll('.vf').forEach(x=>x.setAttribute('aria-pressed',x===b));refresh()});
+verSel.onchange=()=>{fVer=verSel.value;refresh()};
+document.getElementById('fpos').onchange=e=>{fPos=e.target.value;refresh()};
+document.getElementById('search').oninput=e=>{fQ=e.target.value.trim().toLowerCase();refresh()};
+document.getElementById('density').onclick=e=>{document.body.classList.toggle('compact');e.target.textContent=document.body.classList.contains('compact')?"Детально":"Компактно"};
+document.getElementById('export').onclick=()=>{
+  const rows=[["ID","Категорія","Гіпотеза","Напрям","Джерела","Перевірити у","Позиція","Лишити","?","Прибрати","Лідирує","Коментарі"]];
+  D.forEach(x=>{const o=AGG[x.id]||{keep:[],q:[],rm:[],comments:[]};const ln={keep:"Лишити",rm:"Прибрати",contested:"Спірно",q:"?",none:""}[leaning(o)];
+    rows.push([x.id,CAT[x.c].name,x.h,x.d,x.s.map(s=>SRC[s]||s).join("; "),x.v.join("; "),x.pos==="cut"?"Зняти":(x.pos+(x.eu?" + ЄС":"")),
+      o.keep.length,o.q.length,o.rm.length,ln,o.comments.map(c=>`${c.by}: ${c.txt}`).join(" | ")]);});
+  const csv="\uFEFF"+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="ЕСОЗ_голосування_гіпотези.csv";a.click();
+};
+
+/* ---------- name modal ---------- */
+const modal=document.getElementById('modal'),nameInput=document.getElementById('nameInput');
+function openModal(v){nameInput.value=v||"";modal.removeAttribute('hidden');setTimeout(()=>nameInput.focus(),50);}
+function closeModal(){modal.setAttribute('hidden','');}
+document.getElementById('joinBtn').onclick=join;
+nameInput.addEventListener('keydown',e=>{if(e.key==="Enter")join()});
+async function join(){
+  const nm=nameInput.value.trim();if(!nm){nameInput.focus();return;}
+  const id=(ME&&ME.id)||("u"+Math.random().toString(36).slice(2,9));
+  ME={id,name:nm}; await sset("me",JSON.stringify(ME),false);
+  const raw=await sget("user:"+ME.id,true); MYBLOB=raw?JSON.parse(raw):{name:nm,votes:{},comments:{}}; MYBLOB.name=nm;
+  await saveMyBlob(); closeModal(); await loadAgg(); refresh();
+}
+
+/* ---------- boot ---------- */
+function offsets(){const h=document.querySelector('header').offsetHeight+(document.getElementById('banner').hidden?0:document.getElementById('banner').offsetHeight);
+  document.documentElement.style.setProperty('--htop',h+'px');
+  const c=h+document.getElementById('controls').offsetHeight+8;document.documentElement.style.setProperty('--ctop',c+'px');}
+window.addEventListener('resize',offsets);
+if(!HAS){const b=document.getElementById('banner');b.hidden=false;
+  b.innerHTML="Не налаштовано API_BASE у config.js — голосування не буде спільним.";}
+renderSkeleton();
+(async()=>{
+  const raw=await sget("me",false); if(raw){try{ME=JSON.parse(raw)}catch(e){}}
+  if(ME&&ME.name){const b=await sget("user:"+ME.id,true);MYBLOB=b?JSON.parse(b):{name:ME.name,votes:{},comments:{}};await saveMyBlob();}
+  else openModal("");
+  await loadAgg(); refresh(); offsets();
+})();
+setInterval(async()=>{ if(document.hidden)return; await loadAgg(); refresh(); },6000);
+window.addEventListener('focus',async()=>{await loadAgg();refresh();});
+</script>
+</body>
+</html>
